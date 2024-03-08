@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -19,7 +20,7 @@ func NewConfig(env string) (*Configuration, error) {
 
 func loadConfig(env string) (*Configuration, error) {
 
-	configPath := fmt.Sprintf("configs/tier/%s.yml", env)
+	configPath := filepath.Join("internal", "config", "tier", fmt.Sprintf("%s.yml", env))
 	conf := Configuration{}
 	err := decodeYml(configPath, &conf)
 	if err != nil {

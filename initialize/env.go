@@ -1,8 +1,8 @@
-package init
+package initialize
 
 import "os"
 
-func Getenv() (String, error) {
+func Getenv() (string, error) {
 	env := os.Getenv("GO_ENV")
 	if env == "" {
 		err := os.Setenv("GO_ENV", "development")

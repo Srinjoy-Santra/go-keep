@@ -1,13 +1,6 @@
-package db
+package note
 
 import "github.com/google/uuid"
-
-type Dber interface {
-	getter
-	inserter
-	updater
-	deleter
-}
 
 type Note struct {
 	ID      uuid.UUID `json:"id"`
@@ -15,14 +8,21 @@ type Note struct {
 	Content string    `json:"content"`
 }
 
+type operator interface {
+	getter
+	inserter
+	//updater
+	//deleter
+}
+
 type getter interface {
-	GetOne(id string) Note
-	Get(query string) []Note
-	GetAll() []Note
+	//GetOne(id string) (Note, error)
+	Get(query string) ([]*Note, error)
+	//GetAll() ([]Note, error)
 }
 
 type inserter interface {
-	Insert(Note) error
+	Insert(*Note) error
 }
 
 type updater interface {

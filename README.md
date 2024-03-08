@@ -1,8 +1,14 @@
 # Build Your Own Google Keep
 
+Problem statement https://codingchallenges.fyi/challenges/challenge-keep/
 
-https://www.authgear.com/post/authentication-as-a-service
+Auth https://www.authgear.com/post/authentication-as-a-service
+API best practices https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/
 
+https://12factor.net
+
+## DB queries
+https://www.postgresql.org/docs/16/index.html
 ```sql
 CREATE TABLE Note(
     api_key UUID NOT NULL,
