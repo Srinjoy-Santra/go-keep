@@ -9,20 +9,19 @@ type Note struct {
 }
 
 type Dber interface {
-	getter
 	inserter
+	getter
 	updater
 	deleter
 }
 
+type inserter interface {
+	Insert(*Note) error
+}
 type getter interface {
 	GetOne(id string) (Note, error)
 	Get(query string) ([]Note, error)
 	GetAll() ([]Note, error)
-}
-
-type inserter interface {
-	Insert(*Note) error
 }
 
 type updater interface {

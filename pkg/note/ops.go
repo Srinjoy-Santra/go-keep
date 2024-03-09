@@ -45,16 +45,16 @@ func (pkg *NotePkg) GetAll() ([]*Note, error) {
 	return notes, nil
 }
 
-func (pkg *NotePkg) Remove(id string) error {
-	err := pkg.opr.Delete(id)
+func (pkg *NotePkg) Update(n *Note) error {
+	err := pkg.opr.Update(n)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (pkg *NotePkg) Update(n *Note) error {
-	err := pkg.opr.Update(n)
+func (pkg *NotePkg) Remove(id string) error {
+	err := pkg.opr.Delete(id)
 	if err != nil {
 		return err
 	}

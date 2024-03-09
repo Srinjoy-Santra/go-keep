@@ -14,8 +14,8 @@ type Postgres struct {
 	Db         *sql.DB
 }
 
-// Delete implements Dber.
-func (p *Postgres) Delete(string) error {
+// Insert implements Dber.
+func (p *Postgres) Insert(*Note) error {
 	panic("unimplemented")
 }
 
@@ -34,12 +34,12 @@ func (p *Postgres) GetOne(id string) (Note, error) {
 	panic("unimplemented")
 }
 
-// Insert implements Dber.
-func (p *Postgres) Insert(*Note) error {
+// Update implements Dber.
+func (p *Postgres) Update(*Note) error {
 	panic("unimplemented")
 }
 
-// Update implements Dber.
-func (p *Postgres) Update(*Note) error {
+// Delete implements Dber.
+func (p *Postgres) Delete(string) error {
 	panic("unimplemented")
 }

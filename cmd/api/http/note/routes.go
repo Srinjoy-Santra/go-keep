@@ -28,11 +28,11 @@ func NewNoteRoute(conf *config.Configuration, pkg api.Packager) {
 			case "GET":
 				service.get(&w, r)
 				return
-			case "DELETE":
-				service.remove(&w, r)
-				return
 			case "PUT":
 				service.update(&w, r)
+				return
+			case "DELETE":
+				service.remove(&w, r)
 				return
 			}
 		default:

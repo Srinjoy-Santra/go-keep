@@ -95,30 +95,6 @@ func (n *NoteService) get(w *http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (n *NoteService) remove(w *http.ResponseWriter, r *http.Request) {
-	log.Println("Remove request")
-
-	rId, err := getId(r.RequestURI)
-	if err != nil {
-		http.Error(*w, err.Error(), http.StatusBadRequest)
-	}
-
-	id, err := uuid.Parse(rId)
-	if err != nil {
-		http.Error(*w, err.Error(), http.StatusBadRequest)
-	}
-	log.Print(id)
-
-	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Remove(rId)
-	if err != nil {
-		http.Error(*w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	(*w).WriteHeader(http.StatusNoContent)
-}
-
 func (n *NoteService) update(w *http.ResponseWriter, r *http.Request) {
 
 	log.Println("Update request")
@@ -155,6 +131,30 @@ func (n *NoteService) update(w *http.ResponseWriter, r *http.Request) {
 	}
 
 	(*w).WriteHeader(http.StatusCreated)
+}
+
+func (n *NoteService) remove(w *http.ResponseWriter, r *http.Request) {
+	log.Println("Remove request")
+
+	rId, err := getId(r.RequestURI)
+	if err != nil {
+		http.Error(*w, err.Error(), http.StatusBadRequest)
+	}
+
+	id, err := uuid.Parse(rId)
+	if err != nil {
+		http.Error(*w, err.Error(), http.StatusBadRequest)
+	}
+	log.Print(id)
+
+	notePkg := n.pkg.NewNotePkg()
+	err = notePkg.Remove(rId)
+	if err != nil {
+		http.Error(*w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	(*w).WriteHeader(http.StatusNoContent)
 }
 
 func getId(uri string) (string, error) {
