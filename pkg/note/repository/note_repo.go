@@ -24,7 +24,12 @@ func (nr *NoteRepo) Insert(n *pn.Note) error {
 		Title:   n.Title,
 		Content: n.Content,
 	}
-	return nr.db.Insert(&note)
+	err := nr.db.Insert(&note)
+	if err != nil {
+		return err
+	}
+	n.ID = note.ID
+	return nil
 }
 
 func (nr *NoteRepo) Get(query string) ([]*pn.Note, error) {
@@ -35,7 +40,6 @@ func (nr *NoteRepo) Get(query string) ([]*pn.Note, error) {
 	return bindToNotes(dbn), nil
 }
 
-/*
 func (nr *NoteRepo) GetOne(id string) (*pn.Note, error) {
 	dbn, err := nr.db.GetOne(id)
 	if err != nil {
@@ -52,19 +56,18 @@ func (nr *NoteRepo) GetAll() ([]*pn.Note, error) {
 	return bindToNotes(dbn), nil
 }
 
-func (nr *NoteRepo) Update(n pn.Note) error {
-	dn := Note{
+func (nr *NoteRepo) Update(n *pn.Note) error {
+	dn := db.Note{
 		ID:      n.ID,
 		Title:   n.Title,
 		Content: n.Content,
 	}
-	return nr.db.Update(dn)
+	return nr.db.Update(&dn)
 }
 
 func (nr *NoteRepo) Delete(id string) error {
 	return nr.db.Delete(id)
 }
-*/
 
 func bindToNotes(dbNotes []db.Note) []*pn.Note {
 	notes := []*pn.Note{}

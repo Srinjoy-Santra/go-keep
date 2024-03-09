@@ -56,17 +56,16 @@ func (d *Dummy) GetAll() ([]Note, error) {
 	return d.notes, nil
 }
 
-func (d *Dummy) Update(note Note) error {
+func (d *Dummy) Update(note *Note) error {
 
-	var uNote Note
 	for i, lNote := range d.notes {
 		if lNote.ID == note.ID {
-			d.notes[i] = uNote
+			d.notes[i] = *note
 			return nil
 
 		}
 	}
-	return errors.New("could not update")
+	return errors.New("id not found")
 }
 
 func (d *Dummy) Delete(id string) error {
@@ -82,5 +81,6 @@ func (d *Dummy) Delete(id string) error {
 			break
 		}
 	}
-	return errors.New("could not delete")
+
+	return errors.New("id not found")
 }

@@ -3,7 +3,7 @@
 appVersion: 0.0.1
 server:
   http:
-    address: 8080
+    address: :8080
 database:
   source: InMemory
   

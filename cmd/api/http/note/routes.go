@@ -29,10 +29,10 @@ func NewNoteRoute(conf *config.Configuration, pkg api.Packager) {
 				service.get(&w, r)
 				return
 			case "DELETE":
-				//service.remove(&w, r)
+				service.remove(&w, r)
 				return
 			case "PUT":
-				//service.update(&w, r)
+				service.update(&w, r)
 				return
 			}
 		default:
@@ -40,5 +40,5 @@ func NewNoteRoute(conf *config.Configuration, pkg api.Packager) {
 		}
 	}
 
-	http.HandleFunc("/notes", noteHandler)
+	http.HandleFunc("/", noteHandler)
 }

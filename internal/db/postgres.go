@@ -40,6 +40,6 @@ func (p *Postgres) Insert(*Note) error {
 }
 
 // Update implements Dber.
-func (p *Postgres) Update(Note) error {
+func (p *Postgres) Update(*Note) error {
 	panic("unimplemented")
 }
