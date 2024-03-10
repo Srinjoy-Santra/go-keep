@@ -25,12 +25,13 @@ func NewInitializedInstances(conf *config.Configuration) (*DBInstance, error) {
 }
 
 func (i *DBInstance) initialize() error {
+	var err error
 	if i.conf.Database.Source == InMemory {
-		i.dummyDB = NewDummy(&i.conf)
+		i.dummyDB, err = NewDummy(&i.conf)
 	} else {
-		i.pgDB = NewPostgres(&i.conf)
+		i.pgDB, err = NewPostgres(&i.conf)
 	}
-	return nil
+	return err
 }
 
 func (i *DBInstance) GetDB() Dber {

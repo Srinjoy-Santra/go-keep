@@ -76,7 +76,7 @@ func (n *NoteService) get(w *http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Print(id)
-		notes, err := notePkg.Get(filter)
+		notes, err := notePkg.GetOne(filter)
 		if err != nil {
 			http.Error(*w, err.Error(), http.StatusNotImplemented)
 		}
