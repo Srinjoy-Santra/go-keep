@@ -5,37 +5,40 @@ Problem statement https://codingchallenges.fyi/challenges/challenge-keep/
 - Auth https://www.authgear.com/post/authentication-as-a-service
 - API best practices https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/
 - https://12factor.net
+- status code https://www.restapitutorial.com/httpstatuscodes.html
+- rest best practices https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/#h-handle-errors-gracefully-and-return-standard-error-codes
+- https://restfulapi.net/http-methods
 
 ## DB queries
 https://www.postgresql.org/docs/16/index.html
 ```sql
 CREATE TABLE Note(
-    api_key UUID NOT NULL,
+    id UUID NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (api_key)
+    PRIMARY KEY (id)
 );
 ```
 
 https://aviyadav231.medium.com/automatically-updating-a-timestamp-column-in-postgresql-using-triggers-98766e3b47a0
 ```sql
-CREATE  FUNCTION update_updated_on_note()
+CREATE FUNCTION update_updated_at_note()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_on = now();
+    NEW.updated_at = now();
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 ```
 
 ```sql
-CREATE TRIGGER update_note_updated_on
+CREATE TRIGGER update_note_updated_at
     BEFORE UPDATE
     ON
         note
     FOR EACH ROW
-EXECUTE PROCEDURE update_updated_on_note();
+EXECUTE PROCEDURE update_updated_at_note();
 ```
 
 ```sql

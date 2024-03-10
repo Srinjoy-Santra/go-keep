@@ -16,7 +16,7 @@ type HTTP struct {
 type Database struct {
 	Source     string `yaml:"source"`
 	InMemory   InMemory
-	Relational Relational
+	Relational Relational `yaml:"relational"`
 }
 
 type InMemory struct {

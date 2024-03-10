@@ -8,11 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewDummy(conf *config.Configuration) *Dummy {
+func NewDummy(conf *config.Configuration) (*Dummy, error) {
 	return &Dummy{
 		connection: "Put some conf string",
 		notes:      []Note{},
-	}
+	}, nil
 }
 
 type Dummy struct {
