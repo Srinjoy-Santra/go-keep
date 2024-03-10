@@ -63,9 +63,8 @@ func (n *NoteService) get(w *http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	filter, err := getId(r.RequestURI)
+	id, err := validateId(r.RequestURI)
 	if err != nil {
-
 		notes, err := notePkg.GetAll()
 		if err != nil {
 			http.Error(*w, err.Error(), http.StatusNotImplemented)
@@ -75,13 +74,7 @@ func (n *NoteService) get(w *http.ResponseWriter, r *http.Request) {
 			http.Error(*w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 	} else {
-		id, err := uuid.Parse(filter)
-		if err != nil {
-			http.Error(*w, err.Error(), http.StatusBadRequest)
-		}
-
 		log.Print(id)
 		notes, err := notePkg.Get(filter)
 		if err != nil {
@@ -105,15 +98,10 @@ func (n *NoteService) update(w *http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rId, err := getId(r.RequestURI)
+	id, err := validateId(r.RequestURI)
 	if err != nil {
 		http.Error(*w, err.Error(), http.StatusBadRequest)
 		return
-	}
-
-	id, err := uuid.Parse(rId)
-	if err != nil {
-		http.Error(*w, err.Error(), http.StatusBadRequest)
 	}
 	log.Print(id)
 	note.ID = id
@@ -136,19 +124,15 @@ func (n *NoteService) update(w *http.ResponseWriter, r *http.Request) {
 func (n *NoteService) remove(w *http.ResponseWriter, r *http.Request) {
 	log.Println("Remove request")
 
-	rId, err := getId(r.RequestURI)
+	id, err := validateId(r.RequestURI)
 	if err != nil {
 		http.Error(*w, err.Error(), http.StatusBadRequest)
 	}
 
-	id, err := uuid.Parse(rId)
-	if err != nil {
-		http.Error(*w, err.Error(), http.StatusBadRequest)
-	}
 	log.Print(id)
 
 	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Remove(rId)
+	err = notePkg.Remove(id.String())
 	if err != nil {
 		http.Error(*w, err.Error(), http.StatusInternalServerError)
 		return
@@ -157,10 +141,18 @@ func (n *NoteService) remove(w *http.ResponseWriter, r *http.Request) {
 	(*w).WriteHeader(http.StatusNoContent)
 }
 
-func getId(uri string) (string, error) {
+func validateId(uri string) (uuid.UUID, error) {
 	subpaths := strings.Split(uri, "/notes/")
 	if len(subpaths) > 1 {
-		return subpaths[1], nil
+		return validateUUId(subpaths[1])
 	}
-	return "", errors.New("no id found")
+	return uuid.Nil, errors.New("no id found")
+}
+
+func validateUUId(id string) (uuid.UUID, error) {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return uid, nil
 }
