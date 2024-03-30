@@ -10,9 +10,18 @@ import (
 
 func Start(conf *config.Configuration, pkg api.Packager) error {
 
-	note.NewNoteRoute(conf, pkg)
-	address := conf.Server.HTTP.Address
-	log.Fatal(http.ListenAndServe(address, nil))
+	router := http.NewServeMux()
+
+	router.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("pong"))
+	})
+
+	note.NewNoteRoute(conf, pkg, router)
+	server := http.Server{
+		Addr:    conf.Server.HTTP.Address,
+		Handler: router,
+	}
+	log.Fatal(server.ListenAndServe())
 
 	return nil
 }

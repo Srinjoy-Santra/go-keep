@@ -118,7 +118,7 @@ func (p *Postgres) Update(note *Note) error {
 	if err != nil {
 		return err
 	} else if count != 1 {
-		errors.New("1 record was not updated")
+		return errors.New("1 record was not updated")
 	}
 
 	return nil

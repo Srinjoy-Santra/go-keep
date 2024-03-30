@@ -3,6 +3,7 @@
 Problem statement https://codingchallenges.fyi/challenges/challenge-keep/
 
 - Auth https://www.authgear.com/post/authentication-as-a-service
+- Social login https://developer.auth0.com/resources/code-samples/api/standard-library/basic-authorization
 - API best practices https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/
 - https://12factor.net
 - status code https://www.restapitutorial.com/httpstatuscodes.html
