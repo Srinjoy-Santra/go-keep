@@ -2,6 +2,7 @@ package http
 
 import (
 	"go-keep/cmd/api"
+	"go-keep/cmd/api/http/middleware"
 	"go-keep/cmd/api/http/note"
 	"go-keep/internal/config"
 	"log"
@@ -19,7 +20,7 @@ func Start(conf *config.Configuration, pkg api.Packager) error {
 	note.NewNoteRoute(conf, pkg, router)
 	server := http.Server{
 		Addr:    conf.Server.HTTP.Address,
-		Handler: router,
+		Handler: middleware.Logging(router),
 	}
 	log.Fatal(server.ListenAndServe())
 

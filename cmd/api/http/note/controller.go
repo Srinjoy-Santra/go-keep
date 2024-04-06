@@ -20,8 +20,6 @@ func NewNoteService(pkg api.Packager) *NoteService {
 
 func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("Create request")
-
 	var note note.Note
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
@@ -44,7 +42,6 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
-	log.Println("Get request")
 	w.Header().Set("Content-Type", "application/json")
 	notePkg := n.pkg.NewNotePkg()
 
@@ -89,8 +86,6 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 
 func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("Update request")
-
 	var note note.Note
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
@@ -122,7 +117,6 @@ func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (n *NoteService) remove(w http.ResponseWriter, r *http.Request) {
-	log.Println("Remove request")
 
 	id, err := validateUUId(r.PathValue("id"))
 	if err != nil {
