@@ -45,9 +45,10 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	notePkg := n.pkg.NewNotePkg()
 
+	userName := r.URL.Query().Get("userName")
 	filter := r.URL.Query().Get("q")
 	if filter != "" {
-		notes, err := notePkg.Get(filter)
+		notes, err := notePkg.Get(filter, userName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -61,7 +62,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	filter = r.PathValue("id")
 	id, err := validateUUId(filter)
 	if err != nil {
-		notes, err := notePkg.GetAll()
+		notes, err := notePkg.GetAll(userName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -72,7 +73,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Print(id)
-		notes, err := notePkg.GetOne(filter)
+		notes, err := notePkg.GetOne(filter, userName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -124,9 +125,10 @@ func (n *NoteService) remove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Print(id)
+	userName := r.URL.Query().Get("userName")
 
 	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Remove(id.String())
+	err = notePkg.Remove(id.String(), userName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

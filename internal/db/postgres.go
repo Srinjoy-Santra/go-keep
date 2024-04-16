@@ -34,10 +34,19 @@ type Postgres struct {
 func (p *Postgres) Insert(note *Note) error {
 	id, err := uuid.NewV7()
 	if err == nil {
-		query := `INSERT INTO note (id, title, content) VALUES ($1, $2, $3) RETURNING id`
+
+		// search for userId
+		query := `SELECT id FROM customer WHERE name = $1`
+		var userId uuid.UUID
+		err = p.Db.QueryRow(query, note.UserName).Scan(&userId)
+		if err != nil {
+			userId = id
+		}
+
+		query = `INSERT INTO note (id, title, content, "userId") VALUES ($1, $2, $3, $4) RETURNING id`
 
 		var pk uuid.UUID
-		err := p.Db.QueryRow(query, id, note.Title, note.Content).Scan(&pk)
+		err := p.Db.QueryRow(query, id, note.Title, note.Content, userId).Scan(&pk)
 		if err != nil {
 			return err
 		}
@@ -49,7 +58,7 @@ func (p *Postgres) Insert(note *Note) error {
 }
 
 // GetOne implements Dber.
-func (p *Postgres) GetOne(id string) (Note, error) {
+func (p *Postgres) GetOne(id, userName string) (Note, error) {
 
 	var note Note
 	pk, err := uuid.Parse(id)
@@ -57,31 +66,32 @@ func (p *Postgres) GetOne(id string) (Note, error) {
 		return note, fmt.Errorf("invalid id %s", id)
 	}
 
-	query := `SELECT title, content From note WHERE id = $1`
+	query := `SELECT note.title, note.content FROM note, customer WHERE note."userId" = customer.id AND note.id = $1 AND customer.name = $2`
 	var title, content string
-	err = p.Db.QueryRow(query, pk).Scan(&title, &content)
+	err = p.Db.QueryRow(query, pk, userName).Scan(&title, &content)
 	if err != nil {
 		return note, err
 	}
 
 	return Note{
-		ID:      pk,
-		Title:   title,
-		Content: content,
+		ID:       pk,
+		Title:    title,
+		Content:  content,
+		UserName: userName,
 	}, nil
 }
 
 // Get implements Dber.
-func (p *Postgres) Get(query string) ([]Note, error) {
+func (p *Postgres) Get(query, userName string) ([]Note, error) {
 	panic("unimplemented")
 }
 
 // GetAll implements Dber.
-func (p *Postgres) GetAll() ([]Note, error) {
+func (p *Postgres) GetAll(userName string) ([]Note, error) {
 	notes := []Note{}
 
-	query := `SELECT id, title, content From note`
-	rows, err := p.Db.Query(query)
+	query := `SELECT note.id, note.title, note.content FROM note, customer WHERE note."userId" = customer.id AND customer.name = $1`
+	rows, err := p.Db.Query(query, userName)
 	if err != nil {
 		return notes, err
 	}
@@ -95,9 +105,10 @@ func (p *Postgres) GetAll() ([]Note, error) {
 			return notes, err
 		}
 		notes = append(notes, Note{
-			ID:      id,
-			Title:   title,
-			Content: content,
+			ID:       id,
+			Title:    title,
+			Content:  content,
+			UserName: userName,
 		})
 	}
 

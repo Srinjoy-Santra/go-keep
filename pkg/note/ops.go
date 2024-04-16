@@ -21,24 +21,24 @@ func (pkg *NotePkg) Create(n *Note) error {
 	return nil
 }
 
-func (pkg *NotePkg) Get(query string) ([]*Note, error) {
-	notes, err := pkg.opr.Get(query)
+func (pkg *NotePkg) Get(query, userId string) ([]*Note, error) {
+	notes, err := pkg.opr.Get(query, userId)
 	if err != nil {
 		return nil, err
 	}
 	return notes, nil
 }
 
-func (pkg *NotePkg) GetOne(id string) (*Note, error) {
-	note, err := pkg.opr.GetOne(id)
+func (pkg *NotePkg) GetOne(id, userId string) (*Note, error) {
+	note, err := pkg.opr.GetOne(id, userId)
 	if err != nil {
 		return nil, err
 	}
 	return note, nil
 }
 
-func (pkg *NotePkg) GetAll() ([]*Note, error) {
-	notes, err := pkg.opr.GetAll()
+func (pkg *NotePkg) GetAll(userId string) ([]*Note, error) {
+	notes, err := pkg.opr.GetAll(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +53,8 @@ func (pkg *NotePkg) Update(n *Note) error {
 	return nil
 }
 
-func (pkg *NotePkg) Remove(id string) error {
-	err := pkg.opr.Delete(id)
+func (pkg *NotePkg) Remove(id, userName string) error {
+	err := pkg.opr.Delete(id, userName)
 	if err != nil {
 		return err
 	}

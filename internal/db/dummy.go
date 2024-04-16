@@ -31,7 +31,7 @@ func (d *Dummy) Insert(note *Note) error {
 	}
 }
 
-func (d *Dummy) GetOne(id string) (Note, error) {
+func (d *Dummy) GetOne(id, userName string) (Note, error) {
 
 	var noteOne Note
 	dId, err := uuid.Parse(id)
@@ -39,7 +39,7 @@ func (d *Dummy) GetOne(id string) (Note, error) {
 		return noteOne, fmt.Errorf("invalid id %s", id)
 	}
 	for _, note := range d.notes {
-		if note.ID == dId {
+		if note.ID == dId && note.UserName == userName {
 			noteOne = note
 			break
 		}
@@ -48,12 +48,24 @@ func (d *Dummy) GetOne(id string) (Note, error) {
 	return noteOne, nil
 }
 
-func (d *Dummy) Get(query string) ([]Note, error) {
+func (d *Dummy) Get(query, userName string) ([]Note, error) {
 	return d.notes, nil
 }
 
-func (d *Dummy) GetAll() ([]Note, error) {
-	return d.notes, nil
+func (d *Dummy) GetAll(userName string) ([]Note, error) {
+	if userName == "admin" {
+		return d.notes, nil
+	}
+
+	notes := []Note{}
+	for _, note := range d.notes {
+		if note.UserName == userName {
+			notes = append(notes, note)
+		}
+	}
+
+	return notes, nil
+
 }
 
 func (d *Dummy) Update(note *Note) error {

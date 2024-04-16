@@ -3,9 +3,10 @@ package db
 import "github.com/google/uuid"
 
 type Note struct {
-	ID      uuid.UUID `json:"id"`
-	Title   string    `json:"title"`
-	Content string    `json:"content"`
+	ID       uuid.UUID `json:"id"`
+	Title    string    `json:"title"`
+	Content  string    `json:"content"`
+	UserName string    `json:"userName"`
 }
 
 type Dber interface {
@@ -19,9 +20,9 @@ type inserter interface {
 	Insert(*Note) error
 }
 type getter interface {
-	GetOne(id string) (Note, error)
-	Get(query string) ([]Note, error)
-	GetAll() ([]Note, error)
+	GetOne(id, userId string) (Note, error)
+	Get(query, userId string) ([]Note, error)
+	GetAll(userId string) ([]Note, error)
 }
 
 type updater interface {
