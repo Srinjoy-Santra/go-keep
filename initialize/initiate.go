@@ -3,6 +3,7 @@ package initialize
 import (
 	"fmt"
 	"go-keep/cmd/api/http"
+	"go-keep/internal"
 	"go-keep/internal/config"
 	"go-keep/internal/db"
 	"log"
@@ -29,13 +30,18 @@ func Run() error {
 		return err
 	}
 
-	StartServers(conf, dbInstances)
+	auth, err := internal.NewAuth(conf)
+	if err != nil {
+		return err
+	}
+
+	StartServers(conf, dbInstances, auth)
 	return nil
 }
 
-func StartServers(conf *config.Configuration, dbInstance *db.DBInstance) {
+func StartServers(conf *config.Configuration, dbInstance *db.DBInstance, auth *internal.Authenticator) {
 
-	pkg := NewPkgDeps(conf, dbInstance)
+	pkg := NewPkgDeps(conf, dbInstance, auth)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go startHTTP(&wg, conf, pkg)

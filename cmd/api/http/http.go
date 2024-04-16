@@ -4,6 +4,7 @@ import (
 	"go-keep/cmd/api"
 	"go-keep/cmd/api/http/middleware"
 	"go-keep/cmd/api/http/note"
+	"go-keep/cmd/api/http/user"
 	"go-keep/internal/config"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ func Start(conf *config.Configuration, pkg api.Packager) error {
 		w.Write([]byte("pong"))
 	})
 
+	user.NewUserRoute(conf, pkg, router)
 	note.NewNoteRoute(conf, pkg, router)
 	server := http.Server{
 		Addr:    conf.Server.HTTP.Address,

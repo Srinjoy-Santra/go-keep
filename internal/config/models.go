@@ -3,6 +3,7 @@ package config
 type Configuration struct {
 	Server   Server
 	Database Database
+	Auth     Auth
 }
 
 type Server struct {
@@ -24,4 +25,11 @@ type InMemory struct {
 
 type Relational struct {
 	Connection string `yaml:"connection"`
+}
+
+type Auth struct {
+	ClientID     string `yaml:"clientID"`
+	ClientSecret string `yaml:"clientSecret"`
+	Domain       string `yaml:"domain"`
+	CallbackURL  string `yaml:"callbackURL"`
 }
