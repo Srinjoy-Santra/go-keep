@@ -26,6 +26,14 @@ func (u *UserService) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserService) logout(w http.ResponseWriter, r *http.Request) {
+	userPkg := u.pkg.NewUserPkg()
+
+	redirectUrl, err := userPkg.Remove(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
 }
 
 func (u *UserService) user(w http.ResponseWriter, r *http.Request) {

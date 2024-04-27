@@ -6,6 +6,7 @@ import (
 	"go-keep/internal/config"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 type UserPkg struct {
@@ -81,4 +82,32 @@ func (pkg *UserPkg) Get(w http.ResponseWriter, r *http.Request) UseProfile {
 	}
 
 	return user
+}
+
+func (pkg *UserPkg) Remove(w http.ResponseWriter, r *http.Request) (string, error) {
+
+	logoutUrl, err := url.Parse("https://" + pkg.config.Auth.Domain + "/v2/logout")
+	if err != nil {
+		return "", err
+	}
+
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+
+	returnTo, err := url.Parse(scheme + "://" + r.Host)
+	if err != nil {
+		return "", err
+	}
+
+	parameters := url.Values{}
+	parameters.Add("returnTo", returnTo.String())
+	parameters.Add("client_id", pkg.config.Auth.ClientID)
+	logoutUrl.RawQuery = parameters.Encode()
+
+	pkg.ss.DeleteSession(r)
+
+	return logoutUrl.String(), nil
+
 }
