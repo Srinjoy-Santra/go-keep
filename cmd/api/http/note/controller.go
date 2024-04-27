@@ -2,8 +2,10 @@ package note
 
 import (
 	"encoding/json"
+	"errors"
 	"go-keep/cmd/api"
 	"go-keep/pkg/note"
+	"go-keep/pkg/session"
 	"log"
 	"net/http"
 
@@ -11,25 +13,36 @@ import (
 )
 
 type NoteService struct {
-	pkg api.Packager
+	pkg *note.NotePkg
+	ss  *session.SessionStore[session.Session]
 }
 
 func NewNoteService(pkg api.Packager) *NoteService {
-	return &NoteService{pkg}
+	notePkg := pkg.NewNotePkg()
+	ss := notePkg.Ss
+	return &NoteService{notePkg, ss}
 }
 
 func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 
 	var note note.Note
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
 		return
 	}
 
-	notePkg := n.pkg.NewNotePkg()
-	err := notePkg.Create(&note)
+	note.UserId = userId
+
+	err = n.pkg.Create(&note)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -43,13 +56,19 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 
 func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	notePkg := n.pkg.NewNotePkg()
+
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
 
 	filter := r.URL.Query().Get("q")
 	if filter != "" {
-		notes, err := notePkg.Get(filter)
+		notes, err := n.pkg.Get(filter, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
 		}
 
 		if err := json.NewEncoder(w).Encode(notes); err != nil {
@@ -61,9 +80,10 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	filter = r.PathValue("id")
 	id, err := validateUUId(filter)
 	if err != nil {
-		notes, err := notePkg.GetAll()
+		notes, err := n.pkg.GetAll(userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
 		}
 
 		if err := json.NewEncoder(w).Encode(notes); err != nil {
@@ -72,9 +92,10 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Print(id)
-		notes, err := notePkg.GetOne(filter)
+		notes, err := n.pkg.GetOne(filter, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
 		}
 
 		if err := json.NewEncoder(w).Encode(notes); err != nil {
@@ -92,6 +113,13 @@ func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	note.UserId = userId
+
 	id, err := validateUUId(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -100,8 +128,7 @@ func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 	log.Print(id)
 	note.ID = id
 
-	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Update(&note)
+	err = n.pkg.Update(&note)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
 		return
@@ -121,12 +148,17 @@ func (n *NoteService) remove(w http.ResponseWriter, r *http.Request) {
 	id, err := validateUUId(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	log.Print(id)
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
 
-	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Remove(id.String())
+	err = n.pkg.Remove(id.String(), userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -141,4 +173,17 @@ func validateUUId(id string) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return uid, nil
+}
+
+func (n *NoteService) getUserId(r *http.Request) (string, error) {
+	session := n.ss.GetSessionFromCtx(r)
+	sub, ok := session.Profile["sub"]
+	if ok {
+		userId, ok := sub.(string)
+		if ok {
+			return userId, nil
+		}
+	}
+
+	return "", errors.New("user not authenticated")
 }

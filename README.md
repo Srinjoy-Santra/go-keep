@@ -53,3 +53,24 @@ INSERT INTO Note VALUES('018de613-34ef-79ed-874b-2196c5d5167a', 'first note', '#
 ```sql
 UPDATE Note SET title = "Updated note", content="Why do I want to update?" WHERE apiid='018de613-34ef-79ed-874b-2196c5d5167a';
 ```
+
+## Auth
+- [OAuth 2.0 and OpenID Connect (in plain English) YT video](https://www.youtube.com/watch?v=996OiexHze0)
+- Auth0 alternatives
+  - https://www.reddit.com/r/node/comments/17s0c6c/is_there_a_auth0_alternative_that_is_cost/
+
+## Session handling
+### session libraries
+  - Gorilla session (Used in auth0 example)
+  - https://github.com/alexedwards/scs
+  - https://www.reddit.com/r/golang/comments/111i0ps/what_are_the_best_alternatives_to_gorilla_session/
+
+### Create your own session handling
+  - https://astaxie.gitbooks.io/build-web-application-with-golang/content/en/06.1.html
+  - https://www.reddit.com/r/golang/comments/13yrkr6/authentication_with_nethttp_package/
+  - https://github.com/Acebond/session
+  - https://www.alexedwards.net/blog/working-with-cookies-in-go
+
+## Deployment
+ Where to deploy
+  - https://www.reddit.com/r/golang/comments/rwjpw9/where_do_you_guys_deploy_your_hobby_projects/

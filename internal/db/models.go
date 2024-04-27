@@ -6,6 +6,7 @@ type Note struct {
 	ID      uuid.UUID `json:"id"`
 	Title   string    `json:"title"`
 	Content string    `json:"content"`
+	UserId  string    `json:"userId"`
 }
 
 type Dber interface {
@@ -19,9 +20,9 @@ type inserter interface {
 	Insert(*Note) error
 }
 type getter interface {
-	GetOne(id string) (Note, error)
-	Get(query string) ([]Note, error)
-	GetAll() ([]Note, error)
+	GetOne(id, userId string) (Note, error)
+	Get(query, userId string) ([]Note, error)
+	GetAll(userId string) ([]Note, error)
 }
 
 type updater interface {
@@ -29,5 +30,5 @@ type updater interface {
 }
 
 type deleter interface {
-	Delete(string) error
+	Delete(id, userId string) error
 }

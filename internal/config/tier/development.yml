@@ -8,4 +8,8 @@ database:
   source: relational
   relational:
     connection: postgresql://postgres:postgres@localhost:5432/keepNote?sslmode=disable
-  
+auth:
+  clientID: K0K2FeoHlPzquyz6LkbJdXFH728yiSOK
+  domain: dev-nossvw8t8btenb1u.au.auth0.com
+  clientSecret: EKyAwG7o33dJqRr0XLYlUh7p6KIEhimDwsjo8F1J9D32g2s5PwH3Y_gnUyVosFIj
+  callbackURL: http://localhost:8080/callback

@@ -23,6 +23,7 @@ func (nr *NoteRepo) Insert(n *pn.Note) error {
 	note := db.Note{
 		Title:   n.Title,
 		Content: n.Content,
+		UserId:  n.UserId,
 	}
 	err := nr.db.Insert(&note)
 	if err != nil {
@@ -32,24 +33,24 @@ func (nr *NoteRepo) Insert(n *pn.Note) error {
 	return nil
 }
 
-func (nr *NoteRepo) Get(query string) ([]*pn.Note, error) {
-	dbn, err := nr.db.Get(query)
+func (nr *NoteRepo) Get(query, userId string) ([]*pn.Note, error) {
+	dbn, err := nr.db.Get(query, userId)
 	if err != nil {
 		return nil, err
 	}
 	return bindToNotes(dbn), nil
 }
 
-func (nr *NoteRepo) GetOne(id string) (*pn.Note, error) {
-	dbn, err := nr.db.GetOne(id)
+func (nr *NoteRepo) GetOne(id, userId string) (*pn.Note, error) {
+	dbn, err := nr.db.GetOne(id, userId)
 	if err != nil {
 		return nil, err
 	}
 	return bindToNote(dbn), nil
 }
 
-func (nr *NoteRepo) GetAll() ([]*pn.Note, error) {
-	dbn, err := nr.db.GetAll()
+func (nr *NoteRepo) GetAll(userId string) ([]*pn.Note, error) {
+	dbn, err := nr.db.GetAll(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +62,13 @@ func (nr *NoteRepo) Update(n *pn.Note) error {
 		ID:      n.ID,
 		Title:   n.Title,
 		Content: n.Content,
+		UserId:  n.UserId,
 	}
 	return nr.db.Update(&dn)
 }
 
-func (nr *NoteRepo) Delete(id string) error {
-	return nr.db.Delete(id)
+func (nr *NoteRepo) Delete(id, userId string) error {
+	return nr.db.Delete(id, userId)
 }
 
 func bindToNotes(dbNotes []db.Note) []*pn.Note {
@@ -82,5 +84,6 @@ func bindToNote(dbNote db.Note) *pn.Note {
 		ID:      dbNote.ID,
 		Title:   dbNote.Title,
 		Content: dbNote.Content,
+		UserId:  dbNote.UserId,
 	}
 }
