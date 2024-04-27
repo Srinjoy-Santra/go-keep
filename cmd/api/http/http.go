@@ -19,10 +19,14 @@ func Start(conf *config.Configuration, pkg api.Packager) error {
 	})
 
 	user.NewUserRoute(conf, pkg, router)
-	note.NewNoteRoute(conf, pkg, router)
+
+	authRouter := http.NewServeMux()
+	note.NewNoteRoute(conf, pkg, authRouter)
+	router.Handle("/", middleware.EnsureAuth(authRouter))
+
 	server := http.Server{
 		Addr:    conf.Server.HTTP.Address,
-		Handler: middleware.Logging(router),
+		Handler: middleware.Logging(authRouter),
 	}
 	log.Fatal(server.ListenAndServe())
 
