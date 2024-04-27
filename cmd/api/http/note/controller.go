@@ -29,6 +29,7 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 	userId, err := n.getUserId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
+		return
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
@@ -41,6 +42,7 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 	err = n.pkg.Create(&note)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -58,6 +60,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	userId, err := n.getUserId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
+		return
 	}
 
 	filter := r.URL.Query().Get("q")
@@ -65,6 +68,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		notes, err := n.pkg.Get(filter, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
 		}
 
 		if err := json.NewEncoder(w).Encode(notes); err != nil {
@@ -79,6 +83,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		notes, err := n.pkg.GetAll(userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
 		}
 
 		if err := json.NewEncoder(w).Encode(notes); err != nil {
@@ -90,6 +95,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		notes, err := n.pkg.GetOne(filter, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
 		}
 
 		if err := json.NewEncoder(w).Encode(notes); err != nil {
@@ -110,6 +116,7 @@ func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 	userId, err := n.getUserId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
+		return
 	}
 	note.UserId = userId
 
@@ -141,12 +148,14 @@ func (n *NoteService) remove(w http.ResponseWriter, r *http.Request) {
 	id, err := validateUUId(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	log.Print(id)
 	userId, err := n.getUserId(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
+		return
 	}
 
 	err = n.pkg.Remove(id.String(), userId)
