@@ -3,10 +3,10 @@ package note
 import "github.com/google/uuid"
 
 type Note struct {
-	ID       uuid.UUID `json:"id"`
-	Title    string    `json:"title"`
-	Content  string    `json:"content"`
-	UserName string    `json:"userName"`
+	ID      uuid.UUID `json:"id"`
+	Title   string    `json:"title"`
+	Content string    `json:"content"`
+	UserId  string    `json:"userId"`
 }
 
 type operator interface {
@@ -31,5 +31,5 @@ type updater interface {
 }
 
 type deleter interface {
-	Delete(string) error
+	Delete(string, string) error
 }

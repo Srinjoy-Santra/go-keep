@@ -18,15 +18,15 @@ func Start(conf *config.Configuration, pkg api.Packager) error {
 		w.Write([]byte("pong"))
 	})
 
-	user.NewUserRoute(conf, pkg, router)
+	ss := user.NewUserRoute(conf, pkg, router)
 
 	authRouter := http.NewServeMux()
 	note.NewNoteRoute(conf, pkg, authRouter)
-	router.Handle("/", middleware.EnsureAuth(authRouter))
+	router.Handle("/", ss.LoadSession(authRouter))
 
 	server := http.Server{
 		Addr:    conf.Server.HTTP.Address,
-		Handler: middleware.Logging(authRouter),
+		Handler: middleware.Logging(router),
 	}
 	log.Fatal(server.ListenAndServe())
 

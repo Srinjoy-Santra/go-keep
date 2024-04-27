@@ -13,7 +13,7 @@ import (
 type PkgDeps struct {
 	conf         *config.Configuration
 	dbInstance   *db.DBInstance
-	sessionStore *session.SessionStore[session.Session]
+	SessionStore *session.SessionStore[session.Session]
 	auth         *internal.Authenticator
 }
 
@@ -28,9 +28,9 @@ func NewPkgDeps(conf *config.Configuration, dbInstance *db.DBInstance, auth *int
 
 func (p *PkgDeps) NewNotePkg() *note.NotePkg {
 	noteRepo := note_repo.NewNoteRepo(p.conf, p.dbInstance)
-	return note.NewNotePkg(p.conf, noteRepo)
+	return note.NewNotePkg(p.conf, noteRepo, p.SessionStore)
 }
 
 func (p *PkgDeps) NewUserPkg() *session.UserPkg {
-	return session.NewUserPkg(p.conf, p.sessionStore, p.auth)
+	return session.NewUserPkg(p.conf, p.SessionStore, p.auth)
 }

@@ -1,22 +1,24 @@
 package session
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"net/http"
 	"sync"
 	"time"
 )
 
-type sessionKey struct{}
+type SessionKey struct {
+	Name string
+}
 
 // SessionStore holds the session data and settings
 type SessionStore[T any] struct {
 	name       string
 	sessions   map[string]*T
 	lock       sync.RWMutex
-	ctxKey     sessionKey
+	ctxKey     SessionKey
 	expiration time.Duration
 }
 
@@ -24,7 +26,7 @@ type SessionStore[T any] struct {
 func (st *SessionStore[T]) InitStore(name string, itemExpiry time.Duration) {
 	st.name = name
 	st.sessions = make(map[string]*T)
-	st.ctxKey = sessionKey{}
+	st.ctxKey = SessionKey{Name: "userId"}
 	st.expiration = itemExpiry
 }
 
@@ -92,14 +94,17 @@ func (st *SessionStore[T]) GetSessionFromRequest(r *http.Request) *T {
 
 // LoadSession will load the session into the http.Request context.
 // A http.StatusUnauthorized will be retuned to the client if no session can be found.
-func (st *SessionStore[T]) LoadSession(r *http.Request) (*T, error) {
-	sess := st.GetSessionFromRequest(r)
-	var err error
-	if sess == nil {
-		err = errors.New("invalid Session")
-	}
+func (st *SessionStore[T]) LoadSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess := st.GetSessionFromRequest(r)
+		if sess == nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-	return sess, err
+		ctx := context.WithValue(r.Context(), st.ctxKey, sess)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 // GetSessionFromCtx retrieves the session from the http.Request context.

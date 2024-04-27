@@ -9,11 +9,12 @@ import (
 
 type UserService struct {
 	pkg *session.UserPkg
+	Ss  *session.SessionStore[session.Session]
 }
 
 func NewUserService(pkg api.Packager) *UserService {
 	userPkg := pkg.NewUserPkg()
-	return &UserService{userPkg}
+	return &UserService{userPkg, userPkg.SessionStore}
 }
 
 func (u *UserService) login(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +36,10 @@ func (u *UserService) logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserService) user(w http.ResponseWriter, r *http.Request) {
-	user := u.pkg.Get(w, r)
+	user, err := u.pkg.Get(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	t, _ := template.New("foo").Parse(userTemplate)
 	t.Execute(w, user)
 

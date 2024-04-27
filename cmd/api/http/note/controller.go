@@ -2,8 +2,10 @@ package note
 
 import (
 	"encoding/json"
+	"errors"
 	"go-keep/cmd/api"
 	"go-keep/pkg/note"
+	"go-keep/pkg/session"
 	"log"
 	"net/http"
 
@@ -12,21 +14,31 @@ import (
 
 type NoteService struct {
 	pkg *note.NotePkg
+	ss  *session.SessionStore[session.Session]
 }
 
 func NewNoteService(pkg api.Packager) *NoteService {
 	notePkg := pkg.NewNotePkg()
-	return &NoteService{notePkg}
+	ss := notePkg.Ss
+	return &NoteService{notePkg, ss}
 }
 
 func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 
 	var note note.Note
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
 		return
 	}
-	err := n.pkg.Create(&note)
+
+	note.UserId = userId
+
+	err = n.pkg.Create(&note)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
 	}
@@ -43,10 +55,14 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userName := r.URL.Query().Get("userName")
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+	}
+
 	filter := r.URL.Query().Get("q")
 	if filter != "" {
-		notes, err := n.pkg.Get(filter, userName)
+		notes, err := n.pkg.Get(filter, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -60,7 +76,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	filter = r.PathValue("id")
 	id, err := validateUUId(filter)
 	if err != nil {
-		notes, err := n.pkg.GetAll(userName)
+		notes, err := n.pkg.GetAll(userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -71,7 +87,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Print(id)
-		notes, err := n.pkg.GetOne(filter, userName)
+		notes, err := n.pkg.GetOne(filter, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -90,6 +106,12 @@ func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNoContent)
 		return
 	}
+
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+	}
+	note.UserId = userId
 
 	id, err := validateUUId(r.PathValue("id"))
 	if err != nil {
@@ -122,9 +144,12 @@ func (n *NoteService) remove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Print(id)
-	userName := r.URL.Query().Get("userName")
+	userId, err := n.getUserId(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+	}
 
-	err = n.pkg.Remove(id.String(), userName)
+	err = n.pkg.Remove(id.String(), userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -139,4 +164,17 @@ func validateUUId(id string) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return uid, nil
+}
+
+func (n *NoteService) getUserId(r *http.Request) (string, error) {
+	session := n.ss.GetSessionFromCtx(r)
+	sub, ok := session.Profile["sub"]
+	if ok {
+		userId, ok := sub.(string)
+		if ok {
+			return userId, nil
+		}
+	}
+
+	return "", errors.New("user not authenticated")
 }

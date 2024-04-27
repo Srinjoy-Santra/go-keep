@@ -10,9 +10,9 @@ import (
 )
 
 type UserPkg struct {
-	config *config.Configuration
-	ss     *SessionStore[Session]
-	auth   *internal.Authenticator
+	config       *config.Configuration
+	SessionStore *SessionStore[Session]
+	auth         *internal.Authenticator
 }
 
 type Session struct {
@@ -27,11 +27,11 @@ type UseProfile struct {
 }
 
 func NewUserPkg(conf *config.Configuration, ss *SessionStore[Session], auth *internal.Authenticator) *UserPkg {
-	return &UserPkg{config: conf, ss: ss, auth: auth}
+	return &UserPkg{config: conf, SessionStore: ss, auth: auth}
 }
 
 func (pkg *UserPkg) Put(w http.ResponseWriter, r *http.Request, sess *Session) string {
-	state := pkg.ss.PutSession(w, r, sess, "")
+	state := pkg.SessionStore.PutSession(w, r, sess, "")
 	return pkg.auth.AuthCodeURL(state)
 }
 
@@ -40,7 +40,7 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
 
 	state := query.Get("state")
-	sessions := pkg.ss.sessions
+	sessions := pkg.SessionStore.sessions
 	session, found := sessions[state]
 	if !found {
 		return errors.New("invalid state parameter")
@@ -62,18 +62,15 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 
 	session.AccessToken = token.AccessToken
 	session.Profile = profile
-	pkg.ss.PutSession(w, r, session, state)
+	pkg.SessionStore.PutSession(w, r, session, state)
 
 	return nil
 }
 
-func (pkg *UserPkg) Get(w http.ResponseWriter, r *http.Request) UseProfile {
-	session, err := pkg.ss.LoadSession(r)
-	if err != nil {
-		return UseProfile{
-			Name:    "Invalid",
-			Picture: "Invalid",
-		}
+func (pkg *UserPkg) Get(w http.ResponseWriter, r *http.Request) (*UseProfile, error) {
+	session := pkg.SessionStore.GetSessionFromRequest(r)
+	if session == nil {
+		return nil, errors.New("user not authenticated")
 	}
 	profile := session.Profile
 	log.Println(profile)
@@ -83,7 +80,7 @@ func (pkg *UserPkg) Get(w http.ResponseWriter, r *http.Request) UseProfile {
 		Picture: profile["picture"].(string),
 	}
 
-	return user
+	return &user, nil
 }
 
 func (pkg *UserPkg) Remove(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -108,7 +105,7 @@ func (pkg *UserPkg) Remove(w http.ResponseWriter, r *http.Request) (string, erro
 	parameters.Add("client_id", pkg.config.Auth.ClientID)
 	logoutUrl.RawQuery = parameters.Encode()
 
-	pkg.ss.DeleteSession(r)
+	pkg.SessionStore.DeleteSession(r)
 
 	return logoutUrl.String(), nil
 

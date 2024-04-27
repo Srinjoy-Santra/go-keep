@@ -2,15 +2,17 @@ package note
 
 import (
 	"go-keep/internal/config"
+	"go-keep/pkg/session"
 )
 
 type NotePkg struct {
 	config *config.Configuration
 	opr    operator
+	Ss     *session.SessionStore[session.Session]
 }
 
-func NewNotePkg(conf *config.Configuration, operator operator) *NotePkg {
-	return &NotePkg{config: conf, opr: operator}
+func NewNotePkg(conf *config.Configuration, operator operator, store *session.SessionStore[session.Session]) *NotePkg {
+	return &NotePkg{config: conf, opr: operator, Ss: store}
 }
 
 func (pkg *NotePkg) Create(n *Note) error {
@@ -53,8 +55,8 @@ func (pkg *NotePkg) Update(n *Note) error {
 	return nil
 }
 
-func (pkg *NotePkg) Remove(id, userName string) error {
-	err := pkg.opr.Delete(id)
+func (pkg *NotePkg) Remove(id, userId string) error {
+	err := pkg.opr.Delete(id, userId)
 	if err != nil {
 		return err
 	}

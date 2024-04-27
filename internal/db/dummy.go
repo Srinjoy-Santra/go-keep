@@ -31,7 +31,7 @@ func (d *Dummy) Insert(note *Note) error {
 	}
 }
 
-func (d *Dummy) GetOne(id, userName string) (Note, error) {
+func (d *Dummy) GetOne(id, userId string) (Note, error) {
 
 	var noteOne Note
 	dId, err := uuid.Parse(id)
@@ -39,7 +39,7 @@ func (d *Dummy) GetOne(id, userName string) (Note, error) {
 		return noteOne, fmt.Errorf("invalid id %s", id)
 	}
 	for _, note := range d.notes {
-		if note.ID == dId && note.UserName == userName {
+		if note.ID == dId && note.UserId == userId {
 			noteOne = note
 			break
 		}
@@ -48,18 +48,18 @@ func (d *Dummy) GetOne(id, userName string) (Note, error) {
 	return noteOne, nil
 }
 
-func (d *Dummy) Get(query, userName string) ([]Note, error) {
+func (d *Dummy) Get(query, userId string) ([]Note, error) {
 	return d.notes, nil
 }
 
-func (d *Dummy) GetAll(userName string) ([]Note, error) {
-	if userName == "admin" {
+func (d *Dummy) GetAll(userId string) ([]Note, error) {
+	if userId == "admin" {
 		return d.notes, nil
 	}
 
 	notes := []Note{}
 	for _, note := range d.notes {
-		if note.UserName == userName {
+		if note.UserId == userId {
 			notes = append(notes, note)
 		}
 	}
@@ -71,7 +71,7 @@ func (d *Dummy) GetAll(userName string) ([]Note, error) {
 func (d *Dummy) Update(note *Note) error {
 
 	for i, lNote := range d.notes {
-		if lNote.ID == note.ID {
+		if lNote.ID == note.ID && lNote.UserId == note.UserId {
 			d.notes[i] = *note
 			return nil
 
@@ -80,7 +80,7 @@ func (d *Dummy) Update(note *Note) error {
 	return errors.New("id not found")
 }
 
-func (d *Dummy) Delete(id string) error {
+func (d *Dummy) Delete(id, userId string) error {
 
 	dId, err := uuid.Parse(id)
 	if err != nil {
@@ -88,7 +88,7 @@ func (d *Dummy) Delete(id string) error {
 	}
 
 	for i, note := range d.notes {
-		if note.ID == dId {
+		if note.ID == dId && note.UserId == userId {
 			d.notes = append(d.notes[:i], d.notes[i+1:]...)
 			break
 		}

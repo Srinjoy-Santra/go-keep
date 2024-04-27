@@ -38,7 +38,7 @@ func (p *Postgres) Insert(note *Note) error {
 		// search for userId
 		query := `SELECT id FROM customer WHERE name = $1`
 		var userId uuid.UUID
-		err = p.Db.QueryRow(query, note.UserName).Scan(&userId)
+		err = p.Db.QueryRow(query, note.UserId).Scan(&userId)
 		if err != nil {
 			userId = id
 		}
@@ -58,7 +58,7 @@ func (p *Postgres) Insert(note *Note) error {
 }
 
 // GetOne implements Dber.
-func (p *Postgres) GetOne(id, userName string) (Note, error) {
+func (p *Postgres) GetOne(id, userId string) (Note, error) {
 
 	var note Note
 	pk, err := uuid.Parse(id)
@@ -68,30 +68,30 @@ func (p *Postgres) GetOne(id, userName string) (Note, error) {
 
 	query := `SELECT note.title, note.content FROM note, customer WHERE note."userId" = customer.id AND note.id = $1 AND customer.name = $2`
 	var title, content string
-	err = p.Db.QueryRow(query, pk, userName).Scan(&title, &content)
+	err = p.Db.QueryRow(query, pk, userId).Scan(&title, &content)
 	if err != nil {
 		return note, err
 	}
 
 	return Note{
-		ID:       pk,
-		Title:    title,
-		Content:  content,
-		UserName: userName,
+		ID:      pk,
+		Title:   title,
+		Content: content,
+		UserId:  userId,
 	}, nil
 }
 
 // Get implements Dber.
-func (p *Postgres) Get(query, userName string) ([]Note, error) {
+func (p *Postgres) Get(query, userId string) ([]Note, error) {
 	panic("unimplemented")
 }
 
 // GetAll implements Dber.
-func (p *Postgres) GetAll(userName string) ([]Note, error) {
+func (p *Postgres) GetAll(userId string) ([]Note, error) {
 	notes := []Note{}
 
 	query := `SELECT note.id, note.title, note.content FROM note, customer WHERE note."userId" = customer.id AND customer.name = $1`
-	rows, err := p.Db.Query(query, userName)
+	rows, err := p.Db.Query(query, userId)
 	if err != nil {
 		return notes, err
 	}
@@ -105,10 +105,10 @@ func (p *Postgres) GetAll(userName string) ([]Note, error) {
 			return notes, err
 		}
 		notes = append(notes, Note{
-			ID:       id,
-			Title:    title,
-			Content:  content,
-			UserName: userName,
+			ID:      id,
+			Title:   title,
+			Content: content,
+			UserId:  userId,
 		})
 	}
 
@@ -118,9 +118,9 @@ func (p *Postgres) GetAll(userName string) ([]Note, error) {
 
 // Update implements Dber.
 func (p *Postgres) Update(note *Note) error {
-	query := `UPDATE note SET title=$2, content=$3 WHERE id=$1`
+	query := `UPDATE note SET title=$3, content=$4 WHERE id=$1 AND "userId"=$2`
 
-	res, err := p.Db.Exec(query, note.ID, note.Title, note.Content)
+	res, err := p.Db.Exec(query, note.ID, note.UserId, note.Title, note.Content)
 	if err != nil {
 		return err
 	}
@@ -136,16 +136,16 @@ func (p *Postgres) Update(note *Note) error {
 }
 
 // Delete implements Dber.
-func (p *Postgres) Delete(id string) error {
+func (p *Postgres) Delete(id, userId string) error {
 
 	pk, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid id %s", id)
 	}
 
-	query := `DELETE FROM note WHERE id=$1`
+	query := `DELETE FROM note WHERE id=$1 AND "userId"=$2`
 
-	res, err := p.Db.Exec(query, pk)
+	res, err := p.Db.Exec(query, pk, userId)
 	if err != nil {
 		return err
 	}
