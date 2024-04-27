@@ -36,24 +36,12 @@ func (p *Postgres) Insert(note *Note) error {
 	if err == nil {
 
 		// search for userId
-		query := `SELECT id FROM customer WHERE name = $1`
+		query := `INSERT INTO customer (id, name) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET name = $2 RETURNING id`
+
 		var userId uuid.UUID
-		err = p.Db.QueryRow(query, note.UserId).Scan(&userId)
+		err = p.Db.QueryRow(query, id, note.UserId).Scan(&userId)
 		if err != nil {
-			userId = id
-			query = `INSERT INTO customer (id, name) VALUES ($1, $2)`
-			res, err := p.Db.Exec(query, id, note.UserId)
-			if err != nil {
-				return err
-			}
-
-			count, err := res.RowsAffected()
-			if err != nil {
-				return err
-			} else if count != 1 {
-				return errors.New("customer not created")
-			}
-
+			return err
 		}
 
 		query = `INSERT INTO note (id, title, content, "userId") VALUES ($1, $2, $3, $4) RETURNING id`
