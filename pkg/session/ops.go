@@ -31,7 +31,7 @@ func NewUserPkg(conf *config.Configuration, ss *SessionStore[Session], auth *int
 }
 
 func (pkg *UserPkg) Put(w http.ResponseWriter, r *http.Request, sess *Session) string {
-	state := pkg.ss.PutSession(w, r, sess)
+	state := pkg.ss.PutSession(w, r, sess, "")
 	return pkg.auth.AuthCodeURL(state)
 }
 
@@ -39,8 +39,9 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 	log.Println(r.URL.RawQuery)
 	query := r.URL.Query()
 
+	state := query.Get("state")
 	sessions := pkg.ss.sessions
-	session, found := sessions[query.Get("state")]
+	session, found := sessions[state]
 	if !found {
 		return errors.New("invalid state parameter")
 	}
@@ -61,6 +62,7 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 
 	session.AccessToken = token.AccessToken
 	session.Profile = profile
+	pkg.ss.PutSession(w, r, session, state)
 
 	return nil
 }

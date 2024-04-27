@@ -36,8 +36,12 @@ func randBase64String(entropyBytes int) string {
 
 // PutSession will store the session in the SessionStore.
 // The session will automatically expire after defined SessionStore.sessionExpiration.
-func (st *SessionStore[T]) PutSession(w http.ResponseWriter, r *http.Request, sess *T) string {
-	cookieValue := randBase64String(32) // 32 bytes entropy
+func (st *SessionStore[T]) PutSession(w http.ResponseWriter, r *http.Request, sess *T, cookieValue string) string {
+
+	if cookieValue == "" {
+		cookieValue = randBase64String(32) // 32 bytes entropy
+
+	}
 
 	time.AfterFunc(st.expiration, func() {
 		st.lock.Lock()
