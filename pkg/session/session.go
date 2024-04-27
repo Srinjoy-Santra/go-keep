@@ -60,7 +60,7 @@ func (st *SessionStore[T]) PutSession(w http.ResponseWriter, r *http.Request, se
 		HttpOnly: true,
 		Secure:   r.URL.Scheme == "https",
 		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(w, cookie)
 	return cookieValue
