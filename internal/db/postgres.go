@@ -41,6 +41,19 @@ func (p *Postgres) Insert(note *Note) error {
 		err = p.Db.QueryRow(query, note.UserId).Scan(&userId)
 		if err != nil {
 			userId = id
+			query = `INSERT INTO customer (id, name) VALUES ($1, $2)`
+			res, err := p.Db.Exec(query, id, note.UserId)
+			if err != nil {
+				return err
+			}
+
+			count, err := res.RowsAffected()
+			if err != nil {
+				return err
+			} else if count != 1 {
+				return errors.New("customer not created")
+			}
+
 		}
 
 		query = `INSERT INTO note (id, title, content, "userId") VALUES ($1, $2, $3, $4) RETURNING id`
@@ -118,7 +131,7 @@ func (p *Postgres) GetAll(userId string) ([]Note, error) {
 
 // Update implements Dber.
 func (p *Postgres) Update(note *Note) error {
-	query := `UPDATE note SET title=$3, content=$4 WHERE id=$1 AND "userId"=$2`
+	query := `UPDATE note SET title=$3, content=$4 FROM customer WHERE note.id=$1 AND note."userId" = customer.id AND customer.name = $2`
 
 	res, err := p.Db.Exec(query, note.ID, note.UserId, note.Title, note.Content)
 	if err != nil {
@@ -143,7 +156,7 @@ func (p *Postgres) Delete(id, userId string) error {
 		return fmt.Errorf("invalid id %s", id)
 	}
 
-	query := `DELETE FROM note WHERE id=$1 AND "userId"=$2`
+	query := `DELETE FROM note USING customer WHERE note.id=$1 AND note."userId" = customer.id AND customer.name = $2`
 
 	res, err := p.Db.Exec(query, pk, userId)
 	if err != nil {
