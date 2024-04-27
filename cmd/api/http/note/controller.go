@@ -11,11 +11,12 @@ import (
 )
 
 type NoteService struct {
-	pkg api.Packager
+	pkg *note.NotePkg
 }
 
 func NewNoteService(pkg api.Packager) *NoteService {
-	return &NoteService{pkg}
+	notePkg := pkg.NewNotePkg()
+	return &NoteService{notePkg}
 }
 
 func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
@@ -25,9 +26,7 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNoContent)
 		return
 	}
-
-	notePkg := n.pkg.NewNotePkg()
-	err := notePkg.Create(&note)
+	err := n.pkg.Create(&note)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
 	}
@@ -43,12 +42,11 @@ func (n *NoteService) create(w http.ResponseWriter, r *http.Request) {
 
 func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	notePkg := n.pkg.NewNotePkg()
 
 	userName := r.URL.Query().Get("userName")
 	filter := r.URL.Query().Get("q")
 	if filter != "" {
-		notes, err := notePkg.Get(filter, userName)
+		notes, err := n.pkg.Get(filter, userName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -62,7 +60,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 	filter = r.PathValue("id")
 	id, err := validateUUId(filter)
 	if err != nil {
-		notes, err := notePkg.GetAll(userName)
+		notes, err := n.pkg.GetAll(userName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -73,7 +71,7 @@ func (n *NoteService) get(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Print(id)
-		notes, err := notePkg.GetOne(filter, userName)
+		notes, err := n.pkg.GetOne(filter, userName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotImplemented)
 		}
@@ -101,8 +99,7 @@ func (n *NoteService) update(w http.ResponseWriter, r *http.Request) {
 	log.Print(id)
 	note.ID = id
 
-	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Update(&note)
+	err = n.pkg.Update(&note)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNoContent)
 		return
@@ -127,8 +124,7 @@ func (n *NoteService) remove(w http.ResponseWriter, r *http.Request) {
 	log.Print(id)
 	userName := r.URL.Query().Get("userName")
 
-	notePkg := n.pkg.NewNotePkg()
-	err = notePkg.Remove(id.String(), userName)
+	err = n.pkg.Remove(id.String(), userName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

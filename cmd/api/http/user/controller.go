@@ -8,27 +8,25 @@ import (
 )
 
 type UserService struct {
-	pkg api.Packager
+	pkg *session.UserPkg
 }
 
 func NewUserService(pkg api.Packager) *UserService {
-	return &UserService{pkg}
+	userPkg := pkg.NewUserPkg()
+	return &UserService{userPkg}
 }
 
 func (u *UserService) login(w http.ResponseWriter, r *http.Request) {
 
 	sess := &session.Session{}
 
-	userPkg := u.pkg.NewUserPkg()
-	redirectUrl := userPkg.Put(w, r, sess)
+	redirectUrl := u.pkg.Put(w, r, sess)
 
 	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
 }
 
 func (u *UserService) logout(w http.ResponseWriter, r *http.Request) {
-	userPkg := u.pkg.NewUserPkg()
-
-	redirectUrl, err := userPkg.Remove(w, r)
+	redirectUrl, err := u.pkg.Remove(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -37,16 +35,14 @@ func (u *UserService) logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserService) user(w http.ResponseWriter, r *http.Request) {
-	userPkg := u.pkg.NewUserPkg()
-	user := userPkg.Get(w, r)
+	user := u.pkg.Get(w, r)
 	t, _ := template.New("foo").Parse(userTemplate)
 	t.Execute(w, user)
 
 }
 
 func (u *UserService) callback(w http.ResponseWriter, r *http.Request) {
-	userPkg := u.pkg.NewUserPkg()
-	userPkg.Verify(w, r)
+	u.pkg.Verify(w, r)
 
 	redirectUrl := "/user"
 	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
