@@ -20,7 +20,7 @@ type PkgDeps struct {
 func NewPkgDeps(conf *config.Configuration, dbInstance *db.DBInstance, auth *internal.Authenticator) *PkgDeps {
 
 	var ss session.SessionStore[session.Session]
-	ss.InitStore("SessionID", time.Duration(time.Hour*24*7)) // 1 week
+	ss.InitStore("auth-session", time.Duration(time.Hour*24*30)) // 1 month
 
 	pkgDeps := &PkgDeps{conf, dbInstance, &ss, auth}
 	return pkgDeps

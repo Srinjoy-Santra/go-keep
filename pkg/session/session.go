@@ -1,9 +1,9 @@
 package session
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"sync"
 	"time"
@@ -37,7 +37,7 @@ func randBase64String(entropyBytes int) string {
 // PutSession will store the session in the SessionStore.
 // The session will automatically expire after defined SessionStore.sessionExpiration.
 func (st *SessionStore[T]) PutSession(w http.ResponseWriter, r *http.Request, sess *T) string {
-	cookieValue := randBase64String(33) // 33 bytes entropy
+	cookieValue := randBase64String(32) // 32 bytes entropy
 
 	time.AfterFunc(st.expiration, func() {
 		st.lock.Lock()
@@ -88,20 +88,20 @@ func (st *SessionStore[T]) GetSessionFromRequest(r *http.Request) *T {
 
 // LoadSession will load the session into the http.Request context.
 // A http.StatusUnauthorized will be retuned to the client if no session can be found.
-func (st *SessionStore[T]) LoadSession(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess := st.GetSessionFromRequest(r)
-		if sess == nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		ctx := context.WithValue(r.Context(), st.ctxKey, sess)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+func (st *SessionStore[T]) LoadSession(r *http.Request) (*T, error) {
+	sess := st.GetSessionFromRequest(r)
+	var err error
+	if sess == nil {
+		err = errors.New("invalid Session")
+	}
+
+	return sess, err
 }
 
 // GetSessionFromCtx retrieves the session from the http.Request context.
 // The function will return nil if the session does not exist within the http.Request context.
 func (st *SessionStore[T]) GetSessionFromCtx(r *http.Request) *T {
-	return r.Context().Value(st.ctxKey).(*T)
+	ctx := r.Context()
+	v := ctx.Value(st.ctxKey)
+	return v.(*T)
 }

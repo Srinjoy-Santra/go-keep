@@ -18,8 +18,6 @@ func NewUserService(pkg api.Packager) *UserService {
 func (u *UserService) login(w http.ResponseWriter, r *http.Request) {
 
 	sess := &session.Session{}
-	sess.Role = "Administrator"
-	sess.Username = "Admin"
 
 	userPkg := u.pkg.NewUserPkg()
 	redirectUrl := userPkg.Put(w, r, sess)

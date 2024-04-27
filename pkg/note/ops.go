@@ -54,7 +54,7 @@ func (pkg *NotePkg) Update(n *Note) error {
 }
 
 func (pkg *NotePkg) Remove(id, userName string) error {
-	err := pkg.opr.Delete(id, userName)
+	err := pkg.opr.Delete(id)
 	if err != nil {
 		return err
 	}

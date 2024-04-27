@@ -1,6 +1,7 @@
 package session
 
 import (
+	"errors"
 	"go-keep/internal"
 	"go-keep/internal/config"
 	"log"
@@ -14,8 +15,7 @@ type UserPkg struct {
 }
 
 type Session struct {
-	Role        string
-	Username    string
+	State       string
 	AccessToken string
 	Profile     map[string]interface{}
 }
@@ -38,6 +38,12 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 	log.Println(r.URL.RawQuery)
 	query := r.URL.Query()
 
+	sessions := pkg.ss.sessions
+	session, found := sessions[query.Get("state")]
+	if !found {
+		return errors.New("invalid state parameter")
+	}
+
 	token, err := pkg.auth.Exchange(r.Context(), query.Get("code"))
 	if err != nil {
 		return err
@@ -52,7 +58,6 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	session := pkg.ss.GetSessionFromCtx(r)
 	session.AccessToken = token.AccessToken
 	session.Profile = profile
 
@@ -60,7 +65,13 @@ func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (pkg *UserPkg) Get(w http.ResponseWriter, r *http.Request) UseProfile {
-	session := pkg.ss.GetSessionFromCtx(r)
+	session, err := pkg.ss.LoadSession(r)
+	if err != nil {
+		return UseProfile{
+			Name:    "Invalid",
+			Picture: "Invalid",
+		}
+	}
 	profile := session.Profile
 	log.Println(profile)
 
