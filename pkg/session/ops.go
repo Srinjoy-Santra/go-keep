@@ -4,7 +4,6 @@ import (
 	"errors"
 	"go-keep/internal"
 	"go-keep/internal/config"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -36,7 +35,6 @@ func (pkg *UserPkg) Put(w http.ResponseWriter, r *http.Request, sess *Session) s
 }
 
 func (pkg *UserPkg) Verify(w http.ResponseWriter, r *http.Request) error {
-	log.Println(r.URL.RawQuery)
 	query := r.URL.Query()
 
 	state := query.Get("state")
@@ -73,7 +71,6 @@ func (pkg *UserPkg) Get(w http.ResponseWriter, r *http.Request) (*UseProfile, er
 		return nil, errors.New("user not authenticated")
 	}
 	profile := session.Profile
-	log.Println(profile)
 
 	user := UseProfile{
 		Name:    profile["name"].(string),
