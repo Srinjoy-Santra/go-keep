@@ -1,6 +1,7 @@
 # Build Your Own Google Keep
 
 Problem statement https://codingchallenges.fyi/challenges/challenge-keep/
+Writeup https://srinjoysantra.live/blog/go-keep
 
 ## Concepts
 
